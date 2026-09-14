@@ -7,7 +7,7 @@ FROM --platform=${TARGETPLATFORM} ${DEBIAN_IMAGE} AS cln-release
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 ARG TARGETARCH
-ARG CLN_VERSION=26.06.7
+ARG CLN_VERSION=26.06.7-blake2b.3
 
 RUN apt-get update && \
     apt-get install -qq -y --no-install-recommends \
@@ -19,15 +19,15 @@ RUN apt-get update && \
         xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
-COPY keys/ngoline.asc /tmp/release-keys/ngoline.asc
+COPY keys/kyle.asc /tmp/release-keys/kyle.asc
 
 WORKDIR /tmp/release
 
 RUN export GNUPGHOME=/tmp/gnupg && \
-    primary_fingerprint="A57656F8004F6FD68ED99C85BE277A87802A6F08" && \
-    signing_fingerprint="4E4A142F8BD3C38A56B362ED578CAC08472545C5" && \
+    primary_fingerprint="A47D99B6DB0D715D40C59A2023AE8A8EA7E24E38" && \
+    signing_fingerprint="A47D99B6DB0D715D40C59A2023AE8A8EA7E24E38" && \
     install -d -m 0700 "${GNUPGHOME}" && \
-    gpg --batch --import /tmp/release-keys/ngoline.asc >/dev/null 2>&1 && \
+    gpg --batch --import /tmp/release-keys/kyle.asc >/dev/null 2>&1 && \
     gpg --batch --with-colons --fingerprint --fingerprint | \
         awk -F: '$1 == "fpr" { print $10 }' | \
         grep -Fx "${primary_fingerprint}" >/dev/null && \
@@ -37,16 +37,12 @@ RUN export GNUPGHOME=/tmp/gnupg && \
     case "${TARGETARCH}" in \
         amd64) \
             checksum_manifest="SHA256SUMS-v${CLN_VERSION}"; \
-            expected_release_sha256="53ddf124fe7058b6a2fc059d104976cc54ba5be21dc55b295cd82d01cabeb39c" \
-            ;; \
-        arm64) \
-            checksum_manifest="SHA256SUMS-v${CLN_VERSION}-arm64"; \
-            expected_release_sha256="a6e89d49468dac83122d6b795796b7f2ebb55eab6181b419f1cf9a73aeae3965" \
+            expected_release_sha256="9d70d13eab72fe2b727d9070e5a0551280f8154c612f3bb2806c5d7ac9dcbb89" \
             ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
     release_tarball="clightning-v${CLN_VERSION}-Ubuntu-22.04-${TARGETARCH}.tar.xz" && \
-    release_url="https://github.com/ElementsProject/lightning/releases/download/v${CLN_VERSION}" && \
+    release_url="https://github.com/privkeyio/lightning/releases/download/v${CLN_VERSION}" && \
     curl --proto '=https' --tlsv1.2 --fail --location --show-error --silent \
         --remote-name "${release_url}/${checksum_manifest}" && \
     curl --proto '=https' --tlsv1.2 --fail --location --show-error --silent \
@@ -93,10 +89,6 @@ RUN case "${TARGETARCH}" in \
         amd64) \
             bitcoin_arch="x86_64-linux-gnu"; \
             expected_sha256="c9840607d230d65f6938b81deaec0b98fe9cb14c3a41a5b13b2c05d044a48422" \
-            ;; \
-        arm64) \
-            bitcoin_arch="aarch64-linux-gnu"; \
-            expected_sha256="bb878df4f8ff8fb8acfb94207c50f959c462c39e652f507c2a2db20acc6a1eee" \
             ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
