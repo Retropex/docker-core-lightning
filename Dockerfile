@@ -7,7 +7,7 @@ FROM --platform=${TARGETPLATFORM} ${DEBIAN_IMAGE} AS cln-release
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 ARG TARGETARCH
-ARG CLN_VERSION=26.06.7-blake2b.3
+ARG CLN_VERSION=26.06.7-blake2b.4
 
 RUN apt-get update && \
     apt-get install -qq -y --no-install-recommends \
@@ -37,7 +37,11 @@ RUN export GNUPGHOME=/tmp/gnupg && \
     case "${TARGETARCH}" in \
         amd64) \
             checksum_manifest="SHA256SUMS-v${CLN_VERSION}"; \
-            expected_release_sha256="9d70d13eab72fe2b727d9070e5a0551280f8154c612f3bb2806c5d7ac9dcbb89" \
+            expected_release_sha256="35e7001747f7fdf1cb0b38e75c39366a933285aa2ae2c2612d289f8a65369bd2" \
+            ;; \
+        arm64) \
+            checksum_manifest="SHA256SUMS-v${CLN_VERSION}-arm64"; \
+            expected_release_sha256="d37f6be4ba8d29e3820b207a75fc7bfb5f264b0854dc5fafbb3f5d341d78780a" \
             ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
@@ -89,6 +93,10 @@ RUN case "${TARGETARCH}" in \
         amd64) \
             bitcoin_arch="x86_64-linux-gnu"; \
             expected_sha256="c9840607d230d65f6938b81deaec0b98fe9cb14c3a41a5b13b2c05d044a48422" \
+            ;; \
+        arm64) \
+            bitcoin_arch="aarch64-linux-gnu"; \
+            expected_sha256="bb878df4f8ff8fb8acfb94207c50f959c462c39e652f507c2a2db20acc6a1eee" \
             ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
